@@ -24,8 +24,8 @@ Developed by **Lab42 at ERNI** ([betterask.erni](https://betterask.erni))
 
 Clone the repository and install in editable mode:
 ```bash
-git clone <your-url-here>
-cd <your-project-folder>
+git clone https://github.com/gitDew/waspinator.git
+cd waspinator
 pip install -e .
 ```
 
