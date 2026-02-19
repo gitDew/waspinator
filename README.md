@@ -2,7 +2,7 @@
 
 A Python tool for **detecting and catching the invasive _Vespa velutina_**, while recognizing and **not triggering on native _Vespa crabro_**. Powered by the latest YOLO26 object detection model from Ultralytics.
 
-Developed by **Lab42 at ERNI** ([betterask.erni](https://betterask.erni))
+Developed by **[Lab42](#lab42-contributors) at ERNI** ([betterask.erni](https://betterask.erni))
 
 <img src="assets/capturing_paper_velutina.gif" alt="Capturing an image of a vespa velutina" width="1200"/>
 <img src="assets/velutina_tracking.gif" alt="Tracking a vespa velutina" width="1200"/>
@@ -81,7 +81,15 @@ For all options:
 python -m waspinator start --help
 ```
 
-## Hardware & 3D Printing
+## Hardware & 3D Printing (by [@DarioHefti](https://github.com/DarioHefti))
 
 Prototype 3D models for the waspinator trap are available in the [`hardware/`](hardware/) directory as `.stl` files. You can freely download and print these files to build your own trap housing.
+
+## Lab42 Contributors
+- Stefan Bräm
+- Stefan Hoehne
+- Francesco Farinoli
+- Dietmar Hummel ([@hudi84](https://github.com/hudi84))
+- Dario Hefti ([@DarioHefti](https://github.com/DarioHefti))
+- Krisztián Harmat ([@gitDew](https://github.com/gitDew))
 
