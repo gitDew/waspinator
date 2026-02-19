@@ -83,8 +83,5 @@ python -m waspinator start --help
 
 ## Hardware & 3D Printing
 
-Prototype 3D models for the waspinator trap are available in the `hardware/` directory as `.stl` files. You can freely download and print these files to build your own trap housing.
-
-- **Location:** [`hardware/`](hardware/)
-- **Formats:** `.stl` (compatible with most 3D printers)
+Prototype 3D models for the waspinator trap are available in the [`hardware/`](hardware/) directory as `.stl` files. You can freely download and print these files to build your own trap housing.
 
