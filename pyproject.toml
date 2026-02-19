@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["waspinator"]
+
+[project]
+name = "waspinator"
+version = "0.1.0"
+description = "Waspinator CLI"
+authors = [{ name = "ERNI Lab42" }]
+dependencies = []
+
+[project.scripts]
+waspinator = "waspinator.main:main"
