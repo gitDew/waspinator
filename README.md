@@ -24,10 +24,43 @@ Developed by **[Lab42](#lab42-contributors) at ERNI** ([betterask.erni](https://
 
 Clone the repository and install in editable mode:
 ```bash
-git clone https://github.com/gitDew/waspinator.git
-cd waspinator
-pip install -e .
+git clone <your-url-here>
+cd <your-project-folder>
+
+pip install -r requirements.txt
 ```
+
+
+## Raspberry Pi 5
+
+If you want to run Waspinator directly on a Raspberry Pi 5 (in [your own 3D printed trap](#hardware--3d-printing-by-dariohefti)), follow these steps to set up your environment:
+
+1. **Install required system packages:**
+    ```bash
+    sudo apt update
+    sudo apt install -y libgl1 libglib2.0-0
+    sudo apt install python3-picamera2
+    ```
+
+2. **Set up a Python virtual environment (recommended):**
+    ```bash
+    # Create virtual environment
+    python -m venv .venv --system-site-packages
+
+    # Activate the virtual environment
+    source .venv/bin/activate
+    ```
+
+3. **Install Python dependencies:**
+    ```bash
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+The Pi Camera module is supported via `python3-picamera2` so you can use the camera as a video source for wasp detection and trapping.  
+Make sure your camera is enabled and properly connected.
+
+Once everything is installed, you can start Waspinator as described in the [Getting Started](#getting-started) section.
 
 ### Requirements
 
