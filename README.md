@@ -4,6 +4,10 @@ A Python tool for **detecting and catching the invasive _Vespa velutina_**, whil
 
 Developed by **Lab42 at ERNI** ([betterask.erni](https://betterask.erni))
 
+<img src="assets/capturing_paper_velutina.gif" alt="Capturing an image of a vespa velutina" width="1200"/>
+<img src="assets/velutina_tracking.gif" alt="Tracking a vespa velutina" width="1200"/>
+<img src="assets/crabro_tracking.gif" alt="Tracking a vespa crabro" width="1200"/>
+
 ---
 
 ## Features
