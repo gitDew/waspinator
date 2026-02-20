@@ -28,11 +28,14 @@ git clone https://github.com/gitDew/waspinator.git
 cd waspinator
 
 python -m venv .venv
+
 # Activate the virtual environment
 #bash
 source .venv/bin/activate
 #windows
 .\.venv\Scripts\Activate.ps1
+
+#then install requirements
 pip install -r requirements.txt
 ```
 
