@@ -27,6 +27,7 @@ Clone the repository and install dependencies:
 git clone https://github.com/gitDew/waspinator.git
 cd waspinator
 
+python -m venv .venv
 pip install -r requirements.txt
 ```
 
