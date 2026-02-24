@@ -26,6 +26,9 @@ def main(model=None, argv=None):
     start_parser.add_argument('--step', action='store_true', help='Pause after each frame; press space to continue')
     start_parser.add_argument("--log-level", default="INFO", choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
 
+    setup_parser = subparsers.add_parser('setup', help='Setup the waspinator trap')
+    setup_parser.add_argument("--log-level", default="INFO", choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
+
     args = parser.parse_args(argv)
     logging.basicConfig(level=args.log_level)
     if args.command == "start":
@@ -53,6 +56,9 @@ def main(model=None, argv=None):
 
         if display:
             display.close()
+    elif args.command == "setup":
+        trap = HardwareTrap()
+        trap.setup()
     else:
         parser.print_help()
 

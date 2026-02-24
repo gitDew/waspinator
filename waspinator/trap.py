@@ -47,7 +47,7 @@ class HardwareTrap:
     def __init__(self):
         from rpi_hardware_pwm import HardwarePWM
 
-        self.servo = HardwarePWM(pwm_channel=2, chip=0, hz=60)
+        self.servo = HardwarePWM(pwm_channel=2, chip=0, hz=50)
         self.last_movement = time.time()
 
     """A trap abstraction that should trigger actual hardware."""
@@ -56,7 +56,7 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Trigger aborted.")
             return
-        self.servo.start(12.5)
+        self.servo.start(4.6)
         time.sleep(1)
         self.servo.stop()
         self.last_movement = time.time()
@@ -69,7 +69,15 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Reset aborted.")
             return
-        self.servo.start(8)
+        self.servo.start(8.2)
+        time.sleep(1)
+        self.servo.stop()
+        self.last_movement = time.time()
+
+
+    def setup(self):
+        logger.info("Setting up hardware trap...")
+        self.servo.start(8.2)
         time.sleep(1)
         self.servo.stop()
         self.last_movement = time.time()
