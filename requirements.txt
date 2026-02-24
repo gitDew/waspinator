@@ -6,3 +6,4 @@ flask>=3.1.2
 onnx>=1.20.0
 screeninfo
 pytest
+rpi-hardware-pwm
