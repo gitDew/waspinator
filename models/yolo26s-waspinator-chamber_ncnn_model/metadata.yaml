@@ -1,0 +1,19 @@
+description: Ultralytics YOLO26s model trained on /kaggle/working/config.yaml
+author: Ultralytics
+date: '2026-02-20T13:45:27.500678'
+version: 8.4.7
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: Vespa_velutina
+  1: Vespa_crabro
+args:
+  batch: 1
+  half: false
+channels: 3
