@@ -147,3 +147,4 @@ test_failures.csv
 false_positives.csv
 runs/
 recordings/
+.DS_Store
