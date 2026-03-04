@@ -1,8 +1,11 @@
 from datetime import datetime
+import logging
 import os
 import time
 import cv2 as cv
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 class EventRecorder:
     def __init__(self, output_dir: str, img_size: tuple[int, int], fps: float = 30.0):
@@ -37,5 +40,6 @@ class EventRecorder:
     def stop(self):
         if self.writer:
             self.writer.release()
+            logger.info(f"Saved recording: {self.current_path}")
             self.writer = None
             self.current_path = None
