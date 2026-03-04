@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def main(model=None, argv=None):
     if model is None:
-        model = YOLO('./models/yolo26s-waspinator-chamber.pt', task='detect')
+        model = YOLO('./models/yolo26s-waspinator-chamber_ncnn_model', task='detect')
 
     parser = argparse.ArgumentParser(description='Catch some vespa velutinas.')
     subparsers = parser.add_subparsers(dest='command', required=True)
