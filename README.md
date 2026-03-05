@@ -51,7 +51,18 @@ If you want to run Waspinator directly on a Raspberry Pi 5 (in [your own 3D prin
     sudo apt install python3-picamera2
     ```
 
-2. **Set up a Python virtual environment (recommended):**
+2. **Make changes to config**
+    ```bash
+    sudo nano /boot/firmware/config.txt
+    
+    #add the following line to the file somewhere at the top
+    dtoverlay=pwm-2chan
+
+    #restart your device
+    sudo reboot
+    ```
+
+3. **Set up a Python virtual environment (recommended):**
     ```bash
     # Create virtual environment
     python -m venv .venv --system-site-packages
@@ -60,11 +71,18 @@ If you want to run Waspinator directly on a Raspberry Pi 5 (in [your own 3D prin
     source .venv/bin/activate
     ```
 
-3. **Install Python dependencies:**
+4. **Install Python dependencies:**
     ```bash
     pip install --upgrade pip
     pip install -r requirements.txt
     ```
+
+5. **Run Setup to move servo to initial position**
+    ```bash
+    python -m waspinator setup
+    ```
+    Once this ran, you can screw in the motor lever to the servo and make sure that the trap is in the OPEN state.
+    After that you can mount the camera and close up the entire trap. it should be ready now.
 
 The Pi Camera module is supported via `python3-picamera2` so you can use the camera as a video source for wasp detection and trapping.  
 Make sure your camera is enabled and properly connected.
