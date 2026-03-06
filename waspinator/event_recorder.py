@@ -31,6 +31,7 @@ class EventRecorder:
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.current_path = f"{self.output_dir}/motion_{timestamp}.mp4"
+            logger.info(f"Motion detected. Starting new recording at: {self.current_path}")
             fourcc = cv.VideoWriter_fourcc(*'mp4v')
             self.writer = cv.VideoWriter(self.current_path, fourcc, self.fps, self.img_size)
             self.frames_recorded = 0
