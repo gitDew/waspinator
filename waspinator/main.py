@@ -61,8 +61,8 @@ def main(model=None, argv=None):
                 if event_recorder is not None:
                     event_recorder.process_frame(frame)
 
-                if display and trap_thread.annotated_frame is not None:
-                    if display.show_and_check_quit(trap_thread.annotated_frame):
+                if display:
+                    if display.show_and_check_quit(frame):
                         break
 
             trap_thread.stop()
@@ -86,7 +86,6 @@ class TrapThread(threading.Thread):
         self.model = model
         self.trap = trap
         self.trap_controller = trap_controller
-        self.annotated_frame = None
 
     def run(self):
         summary_history = deque([], maxlen=history_length)
@@ -98,7 +97,6 @@ class TrapThread(threading.Thread):
             if frame is None:
                 continue
             result = self.model(frame, imgsz=img_size[0])[0]
-            self.annotated_frame = result.plot()
 
             summary_history.append(result.summary())
 
