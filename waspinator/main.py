@@ -92,7 +92,6 @@ def main(argv=None):
 def trap_worker(frame_queue, model_path, trap, trap_controller):
     from collections import deque
     from ultralytics.models import YOLO
-    img_size = (640, 384)
     history_length = 3
     
     model = YOLO(model_path, task='detect')
@@ -104,7 +103,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller):
         if frame is None:
             break
         
-        result = model(frame, imgsz=img_size)[0]
+        result = model(frame, imgsz=img_size[0])[0]
         summary_history.append(result.summary())
 
         command, next_state = decide(current_state, summary_history, trap.ready())
