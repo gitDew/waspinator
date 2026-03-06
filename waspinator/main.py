@@ -104,7 +104,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller):
         if frame is None:
             break
         
-        result = model(frame, imgsz=img_size[0])[0]
+        result = model(frame, imgsz=img_size)[0]
         summary_history.append(result.summary())
 
         command, next_state = decide(current_state, summary_history, trap.ready())
