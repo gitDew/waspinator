@@ -7,11 +7,9 @@ from waspinator.frame_provider import get_frame_provider
 from waspinator.motion_detector import MotionDetector
 from waspinator.trap import TrapController, FakeTrap, HardwareTrap, TrapState
 import cv2 as cv
-from multiprocessing import Queue, Process
-
+from multiprocessing import Queue, Process, Event
 
 img_size = (640, 384)
-history_length = 3
 
 logger = logging.getLogger(__name__)
 
@@ -48,17 +46,22 @@ def main(argv=None):
 
         frame_queue = Queue(maxsize=1)
         with get_frame_provider(args.source, (4608, 2592)) as frame_provider:
+            run_inference_event = Event()
             trap_process = Process(
                 target=trap_worker,
-                args=(frame_queue, model_path, trap, trap_controller)
+                args=(frame_queue, model_path, trap, trap_controller, run_inference_event)
             )
             trap_process.start()
             while frame_provider.update():
                 frame = frame_provider.frame
                 assert frame is not None
                 frame = cv.resize(frame, img_size)
-                if motion_detector.has_motion(frame) and event_recorder is not None:
-                    event_recorder.extend_or_start()
+                if motion_detector.has_motion(frame): 
+                    if not run_inference_event.is_set():
+                        logger.info("Motion detected; signaling trap process to run inference.")
+                        run_inference_event.set()
+                    if event_recorder is not None:
+                        event_recorder.extend_or_start()
 
                 
                 # Add to trap/inference queue
@@ -89,7 +92,7 @@ def main(argv=None):
     else:
         parser.print_help()
 
-def trap_worker(frame_queue, model_path, trap, trap_controller):
+def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, run_inference_event):
     from collections import deque
     from ultralytics.models import YOLO
     history_length = 3
@@ -99,6 +102,8 @@ def trap_worker(frame_queue, model_path, trap, trap_controller):
     current_state = TrapState.READY_TO_TRIGGER
 
     while True:
+        run_inference_event.wait() # Wait until the main process signals to run inference
+
         frame = frame_queue.get()
         if frame is None:
             break
@@ -109,6 +114,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller):
         command, next_state = decide(current_state, summary_history, trap.ready())
         trap_controller.handle_command(command)
         current_state = next_state
+        # TODO stop inference after a while, right now we start at the beginning and don't stop
 
 if __name__ == '__main__':
     main()
