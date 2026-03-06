@@ -8,7 +8,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class EventRecorder:
-    def __init__(self, output_dir: str, img_size: tuple[int, int], fps: float = 30.0):
+    def __init__(self, output_dir: str, img_size: tuple[int, int], fps: float = 15.0):
         self.output_dir = output_dir
         self.fps = fps
         self.writer: cv.VideoWriter | None = None
@@ -20,8 +20,8 @@ class EventRecorder:
         self.frames_total = 0
         self.max_frames = int(fps * 60 * 5)  # max 5 minutes per recording to prevent huge files
     
-    def extend_or_start(self, nframes: int = 60):
-        """Start a new recording or extend current one by nframes frames."""
+    def extend_or_start(self, duration: int = 2):
+        """Start a new recording or extend current one by duration seconds."""
         if self.writer is None:
             _, _, free = shutil.disk_usage(self.output_dir)
             min_space_bytes = 1 * 1024**3  # 1GB
@@ -36,7 +36,7 @@ class EventRecorder:
             self.frames_recorded = 0
             self.frames_total = 0
 
-        self.frames_total = self.frames_recorded + nframes
+        self.frames_total = self.frames_recorded + (duration * self.fps)
 
     def process_frame(self, frame: np.ndarray):
         """Write frame if recording is active. Stops if past total frames or max frames."""
