@@ -1,8 +1,5 @@
 import argparse
-from collections import deque
 import logging
-import threading
-from ultralytics.models import YOLO
 from waspinator.decider import decide
 from waspinator.display import FrameDisplay
 from waspinator.event_recorder import EventRecorder
@@ -10,15 +7,16 @@ from waspinator.frame_provider import get_frame_provider
 from waspinator.motion_detector import MotionDetector
 from waspinator.trap import TrapController, FakeTrap, HardwareTrap, TrapState
 import cv2 as cv
+from multiprocessing import Queue, Process
+
 
 img_size = (640, 384)
 history_length = 3
 
 logger = logging.getLogger(__name__)
 
-def main(model=None, argv=None):
-    if model is None:
-        model = YOLO('./models/yolo26n-waspinator-chamber_ncnn_model', task='detect')
+def main(argv=None):
+    model_path = './models/yolo26n-waspinator-chamber_ncnn_model'
 
     parser = argparse.ArgumentParser(description='Catch some vespa velutinas.')
     subparsers = parser.add_subparsers(dest='command', required=True)
@@ -48,15 +46,28 @@ def main(model=None, argv=None):
         motion_detector = MotionDetector()
         event_recorder = EventRecorder("./recordings", img_size) if args.record else None
 
+        frame_queue = Queue(maxsize=1)
         with get_frame_provider(args.source, (4608, 2592)) as frame_provider:
-            trap_thread = TrapThread(frame_provider, model, trap, trap_controller)
-            trap_thread.start()
+            trap_process = Process(
+                target=trap_worker,
+                args=(frame_queue, model_path, trap, trap_controller)
+            )
+            trap_process.start()
             while frame_provider.update():
                 frame = frame_provider.frame
                 assert frame is not None
                 frame = cv.resize(frame, img_size)
                 if motion_detector.has_motion(frame) and event_recorder is not None:
                     event_recorder.extend_or_start()
+
+                
+                # Add to trap/inference queue
+                try:
+                    if frame_queue.full():
+                        frame_queue.get_nowait()
+                except:
+                    pass
+                frame_queue.put(frame)
 
                 if event_recorder is not None:
                     event_recorder.process_frame(frame)
@@ -65,7 +76,8 @@ def main(model=None, argv=None):
                     if display.show_and_check_quit(frame):
                         break
 
-            trap_thread.stop()
+        frame_queue.put(None)  # tells trap_worker to exit
+        trap_process.join()
 
         if display:
             display.close()
@@ -77,37 +89,27 @@ def main(model=None, argv=None):
     else:
         parser.print_help()
 
+def trap_worker(frame_queue, model_path, trap, trap_controller):
+    from collections import deque
+    from ultralytics.models import YOLO
+    img_size = (640, 384)
+    history_length = 3
+    
+    model = YOLO(model_path, task='detect')
+    summary_history = deque([], maxlen=history_length)
+    current_state = TrapState.READY_TO_TRIGGER
 
-class TrapThread(threading.Thread):
-    def __init__(self, frame_provider, model, trap, trap_controller):
-        super().__init__(daemon=True)
-        self.running = False
-        self.frame_provider = frame_provider
-        self.model = model
-        self.trap = trap
-        self.trap_controller = trap_controller
+    while True:
+        frame = frame_queue.get()
+        if frame is None:
+            break
+        
+        result = model(frame, imgsz=img_size[0])[0]
+        summary_history.append(result.summary())
 
-    def run(self):
-        summary_history = deque([], maxlen=history_length)
-        current_state = TrapState.READY_TO_TRIGGER
-
-        self.running = True
-        while self.running:
-            frame = self.frame_provider.frame
-            if frame is None:
-                continue
-            result = self.model(frame, imgsz=img_size[0])[0]
-
-            summary_history.append(result.summary())
-
-            command, next_state = decide(current_state, summary_history, self.trap.ready())
-
-            self.trap_controller.handle_command(command)
-
-            current_state = next_state
-
-    def stop(self):
-        self.running = False
+        command, next_state = decide(current_state, summary_history, trap.ready())
+        trap_controller.handle_command(command)
+        current_state = next_state
 
 if __name__ == '__main__':
     main()
