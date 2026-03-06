@@ -59,7 +59,7 @@ def main(model=None, argv=None):
                     event_recorder.extend_or_start()
 
                 if event_recorder is not None:
-                    event_recorder.write_frame(frame)
+                    event_recorder.process_frame(frame)
 
                 if display and trap_thread.annotated_frame is not None:
                     if display.show_and_check_quit(trap_thread.annotated_frame):
