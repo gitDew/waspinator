@@ -15,6 +15,7 @@ class TrapCommand(Enum):
     TRIGGER = auto()
     RESET = auto()
     SLEEP = auto()
+    WAIT = auto()
 
 class TrapController:
     def __init__(self, trap, initial_state=TrapState.WAITING_FOR_CLEARANCE):
@@ -22,7 +23,6 @@ class TrapController:
         self.state = initial_state
 
     def handle_command(self, command: TrapCommand):
-        logger.debug("Handling command: %s", command)
         if command == TrapCommand.TRIGGER:
             self.trap.trigger()
         elif command == TrapCommand.RESET:

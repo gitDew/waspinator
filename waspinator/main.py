@@ -111,6 +111,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
     history_length = 3
     patience_length = 30
     cooldown_seconds = 60
+    wait_seconds = 60
     confidence_threshold = 0.8
     
     model = YOLO(model_path, task='detect')
@@ -145,6 +146,15 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
                 time.sleep(1)
             logger.info("Trap worker cooldown elapsed. Inference will resume on next motion detection.")
             run_inference_event.clear()
+        elif command == TrapCommand.WAIT:
+            logger.info(f"Waiting for clearance. Next inference will run in {wait_seconds} seconds.")
+            start = time.time()
+            while time.time() - start < wait_seconds:
+                if shutdown_event.is_set():
+                    logger.info("Shutdown event received during wait; exiting trap worker.")
+                    trap.reset() # make sure we reset the trap if we're exiting while waiting for clearance
+                    return
+                time.sleep(1)
 
 if __name__ == '__main__':
     main()
