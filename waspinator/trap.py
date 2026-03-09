@@ -14,6 +14,7 @@ class TrapCommand(Enum):
     NO_OP = auto()
     TRIGGER = auto()
     RESET = auto()
+    SLEEP = auto()
 
 class TrapController:
     def __init__(self, trap, initial_state=TrapState.WAITING_FOR_CLEARANCE):
@@ -28,9 +29,6 @@ class TrapController:
             self.trap.reset()
         elif command == TrapCommand.NO_OP:
             logger.debug("NO_OP command received; doing nothing.")
-
-        # TODO handle other commands
-
 
 class FakeTrap:
     """A fake trap implementation for dry-run mode, when we don't want to trigger actual hardware."""

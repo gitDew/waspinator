@@ -1,11 +1,13 @@
 import argparse
 import logging
+import time
 from waspinator.decider import decide
 from waspinator.display import FrameDisplay
 from waspinator.event_recorder import EventRecorder
 from waspinator.frame_provider import get_frame_provider
 from waspinator.motion_detector import MotionDetector
-from waspinator.trap import TrapController, FakeTrap, HardwareTrap, TrapState
+from waspinator.trap import TrapCommand, TrapController, FakeTrap, HardwareTrap, TrapState
+from waspinator.patience_countdown import PatienceCountdown
 import cv2 as cv
 from multiprocessing import Queue, Process, Event
 
@@ -47,9 +49,10 @@ def main(argv=None):
         frame_queue = Queue(maxsize=1)
         with get_frame_provider(args.source, (4608, 2592)) as frame_provider:
             run_inference_event = Event()
+            shutdown_event = Event()
             trap_process = Process(
                 target=trap_worker,
-                args=(frame_queue, model_path, trap, trap_controller, run_inference_event)
+                args=(frame_queue, model_path, trap, trap_controller, run_inference_event, shutdown_event)
             )
             trap_process.start()
             while frame_provider.update():
@@ -66,6 +69,7 @@ def main(argv=None):
                 
                 # Add to trap/inference queue
                 try:
+                    # we use a queue of size 1 to always have the latest frame for inference, dropping older frames if the trap worker is still processing
                     if frame_queue.full():
                         frame_queue.get_nowait()
                 except:
@@ -79,42 +83,59 @@ def main(argv=None):
                     if display.show_and_check_quit(frame):
                         break
 
-        frame_queue.put(None)  # tells trap_worker to exit
-        trap_process.join()
 
         if display:
             display.close()
         if event_recorder:
             event_recorder.stop()
+
+        shutdown_event.set() # signal trap_worker to exit
+        run_inference_event.set() # resume trap_worker so it can exit
+        trap_process.join() # wait for the trap_worker process to finish
+
     elif args.command == "setup":
         trap = HardwareTrap()
         trap.setup()
     else:
         parser.print_help()
 
-def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, run_inference_event):
+def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, run_inference_event, shutdown_event):
     from collections import deque
     from ultralytics.models import YOLO
     history_length = 3
+    patience_length = 30
+    cooldown_seconds = 60
     
-    model = YOLO(model_path, task='detect')
+    model = YOLO(model_path, task='detect') # TODO adjust confidence threshold?
     summary_history = deque([], maxlen=history_length)
     current_state = TrapState.READY_TO_TRIGGER
+    patience_countdown = PatienceCountdown(patience_length) # After how many cycles of no detection do we pause the inference loop
 
     while True:
         run_inference_event.wait() # Wait until the main process signals to run inference
+        if shutdown_event.is_set():
+            logger.info("Shutdown event received; exiting trap worker.")
+            break
 
         frame = frame_queue.get()
-        if frame is None:
-            break
-        
         result = model(frame, imgsz=img_size[0])[0]
         summary_history.append(result.summary())
 
-        command, next_state = decide(current_state, summary_history, trap.ready())
+        command, next_state = decide(current_state, summary_history, trap.ready(), patience_countdown)
         trap_controller.handle_command(command)
         current_state = next_state
-        # TODO stop inference after a while, right now we start at the beginning and don't stop
+
+        if command == TrapCommand.SLEEP:
+            logger.info("No velutina detected for a while; trap worker cooldown before sleep.")
+            start = time.time()
+            while time.time() - start < cooldown_seconds:
+                if shutdown_event.is_set():
+                    logger.info("Shutdown during cooldown; exiting trap worker.")
+                    break
+                time.sleep(1)
+            logger.info("Trap worker cooldown elapsed. Going back to sleep.")
+            run_inference_event.clear()
+            continue
 
 if __name__ == '__main__':
     main()
