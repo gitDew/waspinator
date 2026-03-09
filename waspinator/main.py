@@ -115,7 +115,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         run_inference_event.wait() # Wait until the main process signals to run inference
         if shutdown_event.is_set():
             logger.info("Shutdown event received; exiting trap worker.")
-            break
+            return
 
         frame = frame_queue.get()
         result = model(frame, imgsz=img_size[0])[0]
@@ -125,17 +125,18 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         trap_controller.handle_command(command)
         current_state = next_state
 
+
+        print(patience_countdown.count)
         if command == TrapCommand.SLEEP:
             logger.info("No velutina detected for a while; trap worker cooldown before sleep.")
             start = time.time()
             while time.time() - start < cooldown_seconds:
                 if shutdown_event.is_set():
                     logger.info("Shutdown during cooldown; exiting trap worker.")
-                    break
+                    return
                 time.sleep(1)
             logger.info("Trap worker cooldown elapsed. Going back to sleep.")
             run_inference_event.clear()
-            continue
 
 if __name__ == '__main__':
     main()
