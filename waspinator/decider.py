@@ -25,7 +25,8 @@ def decide(current_state: TrapState, summary_history: deque[list[dict]], is_trap
             return (TrapCommand.SLEEP, TrapState.READY_TO_TRIGGER) # we're going back to sleep
 
     elif current_state == TrapState.WAITING_FOR_CLEARANCE:
-        any_velutina_detected = any(any(d.get("name") == VELUTINA for d in summary) for summary in summary_history)
+        latest_summary = summary_history[-1]
+        any_velutina_detected = any(d.get("name") == VELUTINA for d in latest_summary)
 
         if not any_velutina_detected:
             return (TrapCommand.RESET, TrapState.READY_TO_TRIGGER)
