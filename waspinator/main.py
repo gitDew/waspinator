@@ -111,8 +111,9 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
     history_length = 3
     patience_length = 30
     cooldown_seconds = 60
+    confidence_threshold = 0.8
     
-    model = YOLO(model_path, task='detect') # TODO adjust confidence threshold?
+    model = YOLO(model_path, task='detect')
     summary_history = deque([], maxlen=history_length)
     current_state = TrapState.READY_TO_TRIGGER
     patience_countdown = PatienceCountdown(patience_length) # After how many cycles of no detection do we pause the inference loop
@@ -127,7 +128,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         if frame is None:
             return
 
-        result = model(frame, imgsz=img_size[0])[0]
+        result = model(frame, imgsz=img_size[0], conf=confidence_threshold)[0]
         summary_history.append(result.summary())
 
         command, next_state = decide(current_state, summary_history, trap.ready(), patience_countdown)
