@@ -47,7 +47,7 @@ def main(argv=None):
         event_recorder = EventRecorder("./recordings", img_size) if args.record else None
 
         frame_queue = Queue(maxsize=1)
-        with get_frame_provider(args.source, (4608, 2592)) as frame_provider:
+        with get_frame_provider(args.source, (2304, 1296)) as frame_provider:
             run_inference_event = Event()
             shutdown_event = Event()
             trap_process = Process(
