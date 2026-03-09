@@ -2,7 +2,7 @@ class PatienceCountdown:
     """A simple countdown timer that can be reset and ticked down. Used to implement a patience mechanism for the trap."""
     def __init__(self, start):
         self.start = start
-        self.count = 0
+        self.count = start
 
     def tick(self):
         if self.count > 0:

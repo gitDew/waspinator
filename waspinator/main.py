@@ -91,7 +91,12 @@ def main(argv=None):
 
         shutdown_event.set() # signal trap_worker to exit
         run_inference_event.set() # resume trap_worker so it can exit
-        frame_queue.put(None) # unblock trap_worker if it's waiting on the queue
+        try:
+            if frame_queue.full():
+                frame_queue.get_nowait()
+        except:
+            pass
+        frame_queue.put(None)
         trap_process.join() # wait for the trap_worker process to finish
 
     elif args.command == "setup":
@@ -120,7 +125,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
 
         frame = frame_queue.get()
         if frame is None:
-            continue
+            return
 
         result = model(frame, imgsz=img_size[0])[0]
         summary_history.append(result.summary())
@@ -129,8 +134,6 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         trap_controller.handle_command(command)
         current_state = next_state
 
-
-        print(patience_countdown.count)
         if command == TrapCommand.SLEEP:
             logger.info("No velutina detected for a while; trap worker cooldown before sleep.")
             start = time.time()
