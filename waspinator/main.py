@@ -91,6 +91,7 @@ def main(argv=None):
 
         shutdown_event.set() # signal trap_worker to exit
         run_inference_event.set() # resume trap_worker so it can exit
+        frame_queue.put(None) # unblock trap_worker if it's waiting on the queue
         trap_process.join() # wait for the trap_worker process to finish
 
     elif args.command == "setup":
@@ -118,6 +119,9 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
             return
 
         frame = frame_queue.get()
+        if frame is None:
+            continue
+
         result = model(frame, imgsz=img_size[0])[0]
         summary_history.append(result.summary())
 
