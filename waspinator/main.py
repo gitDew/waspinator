@@ -135,14 +135,14 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         current_state = next_state
 
         if command == TrapCommand.SLEEP:
-            logger.info("No velutina detected for a while; trap worker cooldown before sleep.")
+            logger.info(f"No velutina detected for {patience_length} cycles. Entering cooldown for {cooldown_seconds} seconds.")
             start = time.time()
             while time.time() - start < cooldown_seconds:
                 if shutdown_event.is_set():
-                    logger.info("Shutdown during cooldown; exiting trap worker.")
+                    logger.info("Shutdown event received during cooldown; exiting trap worker.")
                     return
                 time.sleep(1)
-            logger.info("Trap worker cooldown elapsed. Going back to sleep.")
+            logger.info("Trap worker cooldown elapsed. Inference will resume on next motion detection.")
             run_inference_event.clear()
 
 if __name__ == '__main__':
