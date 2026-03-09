@@ -136,6 +136,10 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
         trap_controller.handle_command(command)
         current_state = next_state
 
+        if command != TrapCommand.NO_OP:
+            # we've reached a decision other than NO_OP. We need to clear the summary history to avoid making decisions based on old data.
+            summary_history.clear()
+
         if command == TrapCommand.SLEEP:
             logger.info(f"No velutina detected for {patience_length} cycles. Entering cooldown for {cooldown_seconds} seconds.")
             start = time.time()

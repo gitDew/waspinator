@@ -5,6 +5,9 @@ from waspinator.trap import TrapCommand, TrapState
 VELUTINA = "Vespa_velutina"
 
 def decide(current_state: TrapState, summary_history: deque[list[dict]], is_trap_ready: bool, patience: PatienceCountdown) -> tuple[TrapCommand, TrapState]:
+    if len(summary_history) < summary_history.maxlen:
+        # we don't have enough history yet to make a decision, so we wait
+        return (TrapCommand.NO_OP, current_state)
 
     if not is_trap_ready:
         # Trap is not ready yet; we wait
@@ -25,11 +28,10 @@ def decide(current_state: TrapState, summary_history: deque[list[dict]], is_trap
             return (TrapCommand.SLEEP, TrapState.READY_TO_TRIGGER) # we're going back to sleep
 
     elif current_state == TrapState.WAITING_FOR_CLEARANCE:
-        latest_summary = summary_history[-1]
-        any_velutina_detected = any(d.get("name") == VELUTINA for d in latest_summary)
+        any_velutina_detected = any(any(d.get("name") == VELUTINA for d in summary) for summary in summary_history)
 
         if not any_velutina_detected:
             return (TrapCommand.RESET, TrapState.READY_TO_TRIGGER)
-        return (TrapCommand.WAIT, current_state) # wait a bit until the next inference
+        return (TrapCommand.WAIT, current_state) # we wait until the trap is clear of velutina before we can trigger again
 
     return (TrapCommand.NO_OP, current_state)
