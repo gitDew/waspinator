@@ -46,7 +46,7 @@ def main(argv=None):
 
 
     if args.command == "start":
-        trap = FakeTrap() if args.dry_run else HardwareTrap(servo_param['servo_start'], servo_param['servo_end'])
+        trap = FakeTrap() if args.dry_run else HardwareTrap(servo_param['servo_open'], servo_param['servo_closed'])
         trap_controller = TrapController(trap)
         display = FrameDisplay(pause=args.step) if args.show else None
         motion_detector = MotionDetector()
@@ -107,7 +107,7 @@ def main(argv=None):
         trap_process.join() # wait for the trap_worker process to finish
 
     elif args.command == "setup":
-        trap = HardwareTrap(servo_param['servo_start'], servo_param['servo_end'])
+        trap = HardwareTrap(servo_param['servo_open'], servo_param['servo_closed'])
         trap.setup(args.pos)
     else:
         parser.print_help()
@@ -179,13 +179,13 @@ def load_config(logger):
     load_dotenv(dotenv_path=config_path)
     logger.info(f"Using config file: {config_path}")
     
-    servo_start = float(os.getenv("SERVO_START", 4.6))
-    servo_end = float(os.getenv("SERVO_END", 8.2))
+    servo_open = float(os.getenv("SERVO_OPEN", 8.2))
+    servo_closed = float(os.getenv("SERVO_CLOSED", 4.6))
 
     servo_param = {
-        "servo_start": servo_start,
-        "servo_end": servo_end,
-        }
+        "servo_open": servo_open,
+        "servo_closed": servo_closed,
+    }
     
     logger.info("Loaded servo parameters: %s", servo_param)
     return servo_param

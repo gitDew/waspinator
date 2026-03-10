@@ -42,12 +42,12 @@ class FakeTrap:
         logger.info("FAKE TRAP RESET")
 
 class HardwareTrap:
-    def __init__(self, servo_start:float, servo_end:float):
+    def __init__(self, servo_open:float,servo_closed:float):
         from rpi_hardware_pwm import HardwarePWM
 
         self.servo = HardwarePWM(pwm_channel=2, chip=0, hz=50)
-        self.servo_start = servo_start
-        self.servo_end = servo_end
+        self.servo_open = servo_open
+        self.servo_closed = servo_closed
         self.last_movement = time.time()
 
     """A trap abstraction that should trigger actual hardware."""
@@ -56,7 +56,7 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Trigger aborted.")
             return
-        self.servo.start(self.servo_start)
+        self.servo.start(self.servo_closed)
         time.sleep(1)
         self.servo.stop()
         self.last_movement = time.time()
@@ -69,7 +69,7 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Reset aborted.")
             return
-        self.servo.start(self.servo_end)
+        self.servo.start(self.servo_open)
         time.sleep(1)
         self.servo.stop()
         self.last_movement = time.time()
@@ -78,12 +78,12 @@ class HardwareTrap:
     def setup(self, pos:str):
         logger.info("Setting up hardware trap...")
         if pos == "OPEN":
-            self.servo.start(self.servo_end)
+            self.servo.start(self.servo_open)
             time.sleep(1)
             self.servo.stop()
             self.last_movement = time.time()
         else:
-            self.servo.start(self.servo_start)
+            self.servo.start(self.servo_closed)
             time.sleep(1)
             self.servo.stop()
             self.last_movement = time.time()
