@@ -32,6 +32,7 @@ def main(argv=None):
     start_parser.add_argument('--record', action='store_true', help='Record motion events to video files')
 
     setup_parser = subparsers.add_parser('setup', help='Setup the waspinator trap')
+    setup_parser.add_argument("--pos", default="OPEN", help='', choices=["OPEN", "CLOSED"])
     setup_parser.add_argument("--log-level", default="INFO", choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
 
     args = parser.parse_args(argv)
@@ -107,7 +108,7 @@ def main(argv=None):
 
     elif args.command == "setup":
         trap = HardwareTrap(servo_param['servo_start'], servo_param['servo_end'])
-        trap.setup()
+        trap.setup(args.pos)
     else:
         parser.print_help()
 

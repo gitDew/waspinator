@@ -75,9 +75,15 @@ class HardwareTrap:
         self.last_movement = time.time()
 
 
-    def setup(self):
+    def setup(self, pos:str):
         logger.info("Setting up hardware trap...")
-        self.servo.start(self.servo_end)
-        time.sleep(1)
-        self.servo.stop()
-        self.last_movement = time.time()
+        if pos == "OPEN":
+            self.servo.start(self.servo_end)
+            time.sleep(1)
+            self.servo.stop()
+            self.last_movement = time.time()
+        else:
+            self.servo.start(self.servo_start)
+            time.sleep(1)
+            self.servo.stop()
+            self.last_movement = time.time()
