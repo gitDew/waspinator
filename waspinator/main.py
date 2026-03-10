@@ -47,6 +47,7 @@ def main(argv=None):
 
     if args.command == "start":
         trap = FakeTrap() if args.dry_run else HardwareTrap(servo_param['servo_open'], servo_param['servo_closed'])
+        trap.setup("OPEN")
         trap_controller = TrapController(trap)
         display = FrameDisplay(pause=args.step) if args.show else None
         motion_detector = MotionDetector()
@@ -62,7 +63,6 @@ def main(argv=None):
             )
             trap_process.start()
             while frame_provider.update():
-                time.sleep(sleep_duration)
                 frame = frame_provider.frame
                 assert frame is not None
                 frame = cv.resize(frame, img_size)
@@ -89,6 +89,8 @@ def main(argv=None):
                 if display:
                     if display.show_and_check_quit(frame):
                         break
+                
+                time.sleep(sleep_duration)
 
 
         if display:
@@ -157,7 +159,7 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
                 time.sleep(1)
             logger.info("Trap worker cooldown elapsed. Inference will resume on next motion detection.")
             run_inference_event.clear()
-        elif command == TrapCommand.WAIT:
+        elif command in [TrapCommand.WAIT, TrapCommand.TRIGGER]:
             logger.info(f"Waiting for clearance. Next inference will run in {wait_seconds} seconds.")
             start = time.time()
             while time.time() - start < wait_seconds:
