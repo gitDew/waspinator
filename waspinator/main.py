@@ -41,8 +41,7 @@ def main(argv=None):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
         
-    servo_param=load_config()
-    logger.info("Loaded servo parameters: %s", servo_param)
+    servo_param=load_config(logger=logger)
 
 
     if args.command == "start":
@@ -167,20 +166,28 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
                     return
                 time.sleep(1)
 
-def load_config():
+def load_config(logger):
     import os
+    
+    package_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # .config file takes precedence over .env for easier local overrides without affecting the .env template
-    config_path = ".config" if os.path.exists(".config") else ".config_default"
+    config_path = os.path.join(package_dir, ".config")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(package_dir, ".config_default")
+
     load_dotenv(dotenv_path=config_path)
+    logger.info(f"Using config file: {config_path}")
     
     servo_start = float(os.getenv("SERVO_START", 4.6))
     servo_end = float(os.getenv("SERVO_END", 8.2))
 
-    return {
+    servo_param = {
         "servo_start": servo_start,
         "servo_end": servo_end,
-    }
+        }
+    
+    logger.info("Loaded servo parameters: %s", servo_param)
+    return servo_param
 
 if __name__ == '__main__':
     main()
