@@ -10,8 +10,10 @@ from waspinator.trap import TrapCommand, TrapController, FakeTrap, HardwareTrap,
 from waspinator.patience_countdown import PatienceCountdown
 import cv2 as cv
 from multiprocessing import Queue, Process, Event
+from dotenv import load_dotenv
 
 img_size = (640, 384)
+sleep_duration = 0.05
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +40,13 @@ def main(argv=None):
         format='%(asctime)s.%(msecs)03d %(levelname)s %(name)s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+        
+    servo_param=load_config()
+    logger.info("Loaded servo parameters: %s", servo_param)
+
 
     if args.command == "start":
-        trap = FakeTrap() if args.dry_run else HardwareTrap()
+        trap = FakeTrap() if args.dry_run else HardwareTrap(servo_param['servo_start'], servo_param['servo_end'])
         trap_controller = TrapController(trap)
         display = FrameDisplay(pause=args.step) if args.show else None
         motion_detector = MotionDetector()
@@ -56,6 +62,7 @@ def main(argv=None):
             )
             trap_process.start()
             while frame_provider.update():
+                time.sleep(sleep_duration)
                 frame = frame_provider.frame
                 assert frame is not None
                 frame = cv.resize(frame, img_size)
@@ -100,7 +107,7 @@ def main(argv=None):
         trap_process.join() # wait for the trap_worker process to finish
 
     elif args.command == "setup":
-        trap = HardwareTrap()
+        trap = HardwareTrap(servo_param['servo_start'], servo_param['servo_end'])
         trap.setup()
     else:
         parser.print_help()
@@ -159,6 +166,21 @@ def trap_worker(frame_queue, model_path, trap, trap_controller: TrapController, 
                     trap.reset() # make sure we reset the trap if we're exiting while waiting for clearance
                     return
                 time.sleep(1)
+
+def load_config():
+    import os
+
+    # .config file takes precedence over .env for easier local overrides without affecting the .env template
+    config_path = ".config" if os.path.exists(".config") else ".config_default"
+    load_dotenv(dotenv_path=config_path)
+    
+    servo_start = float(os.getenv("SERVO_START", 4.6))
+    servo_end = float(os.getenv("SERVO_END", 8.2))
+
+    return {
+        "servo_start": servo_start,
+        "servo_end": servo_end,
+    }
 
 if __name__ == '__main__':
     main()

@@ -8,3 +8,4 @@ screeninfo
 pytest
 rpi-hardware-pwm
 ncnn==1.0.20260114
+dotenv
