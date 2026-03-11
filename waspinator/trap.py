@@ -41,6 +41,9 @@ class FakeTrap:
     def reset(self):
         logger.info("FAKE TRAP RESET")
 
+    def setup(self, pos:str):
+        pass
+
 class HardwareTrap:
     def __init__(self, servo_open:float,servo_closed:float):
         from rpi_hardware_pwm import HardwarePWM
