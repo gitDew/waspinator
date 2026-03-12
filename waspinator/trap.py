@@ -62,7 +62,7 @@ class HardwareTrap:
             logger.warning("Trap not ready! Trigger aborted.")
             return
         self.servo.start(self.servo_closed)
-        time.sleep(1)
+        time.sleep(2)
         self.servo.stop()
         self._create_trigger_file()
         self.last_movement = time.time()
@@ -81,7 +81,7 @@ class HardwareTrap:
             logger.warning("Trap not ready! Reset aborted.")
             return
         self.servo.start(self.servo_open)
-        time.sleep(1)
+        time.sleep(2)
         self.servo.stop()
         self.last_movement = time.time()
 
@@ -90,11 +90,11 @@ class HardwareTrap:
         logger.info("Setting up hardware trap...")
         if pos == "OPEN":
             self.servo.start(self.servo_open)
-            time.sleep(1)
+            time.sleep(2)
             self.servo.stop()
             self.last_movement = time.time()
         else:
             self.servo.start(self.servo_closed)
-            time.sleep(1)
+            time.sleep(2)
             self.servo.stop()
             self.last_movement = time.time()
