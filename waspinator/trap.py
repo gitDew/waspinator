@@ -1,5 +1,7 @@
+from datetime import datetime
 from enum import Enum, auto
 import logging
+from pathlib import Path
 import time
 
 logger = logging.getLogger(__name__)
@@ -62,7 +64,13 @@ class HardwareTrap:
         self.servo.start(self.servo_closed)
         time.sleep(1)
         self.servo.stop()
+        self._create_trigger_file()
         self.last_movement = time.time()
+
+    def _create_trigger_file(self):
+        Path("./recordings").mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        Path(f"./recordings/motion_{timestamp}_trigger.txt").touch()
 
     def ready(self):
         return (time.time() - self.last_movement > COOLDOWN_SECONDS)
