@@ -6,3 +6,6 @@ flask>=3.1.2
 onnx>=1.20.0
 screeninfo
 pytest
+rpi-hardware-pwm
+ncnn==1.0.20260114
+dotenv

@@ -1,5 +1,7 @@
+from datetime import datetime
 from enum import Enum, auto
 import logging
+from pathlib import Path
 import time
 
 logger = logging.getLogger(__name__)
@@ -14,6 +16,8 @@ class TrapCommand(Enum):
     NO_OP = auto()
     TRIGGER = auto()
     RESET = auto()
+    SLEEP = auto()
+    WAIT = auto()
 
 class TrapController:
     def __init__(self, trap, initial_state=TrapState.WAITING_FOR_CLEARANCE):
@@ -21,16 +25,12 @@ class TrapController:
         self.state = initial_state
 
     def handle_command(self, command: TrapCommand):
-        logger.debug("Handling command: %s", command)
         if command == TrapCommand.TRIGGER:
             self.trap.trigger()
         elif command == TrapCommand.RESET:
             self.trap.reset()
         elif command == TrapCommand.NO_OP:
             logger.debug("NO_OP command received; doing nothing.")
-
-        # TODO handle other commands
-
 
 class FakeTrap:
     """A fake trap implementation for dry-run mode, when we don't want to trigger actual hardware."""
@@ -43,11 +43,16 @@ class FakeTrap:
     def reset(self):
         logger.info("FAKE TRAP RESET")
 
+    def setup(self, pos:str):
+        pass
+
 class HardwareTrap:
-    def __init__(self):
+    def __init__(self, servo_open:float,servo_closed:float):
         from rpi_hardware_pwm import HardwarePWM
 
-        self.servo = HardwarePWM(pwm_channel=2, chip=0, hz=60)
+        self.servo = HardwarePWM(pwm_channel=2, chip=0, hz=50)
+        self.servo_open = servo_open
+        self.servo_closed = servo_closed
         self.last_movement = time.time()
 
     """A trap abstraction that should trigger actual hardware."""
@@ -56,10 +61,16 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Trigger aborted.")
             return
-        self.servo.start(12.5)
-        time.sleep(1)
+        self.servo.start(self.servo_closed)
+        time.sleep(2)
         self.servo.stop()
+        self._create_trigger_file()
         self.last_movement = time.time()
+
+    def _create_trigger_file(self):
+        Path("./recordings").mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        Path(f"./recordings/motion_{timestamp}_trigger.txt").touch()
 
     def ready(self):
         return (time.time() - self.last_movement > COOLDOWN_SECONDS)
@@ -69,7 +80,21 @@ class HardwareTrap:
         if not self.ready():
             logger.warning("Trap not ready! Reset aborted.")
             return
-        self.servo.start(8)
-        time.sleep(1)
+        self.servo.start(self.servo_open)
+        time.sleep(2)
         self.servo.stop()
         self.last_movement = time.time()
+
+
+    def setup(self, pos:str):
+        logger.info("Setting up hardware trap...")
+        if pos == "OPEN":
+            self.servo.start(self.servo_open)
+            time.sleep(2)
+            self.servo.stop()
+            self.last_movement = time.time()
+        else:
+            self.servo.start(self.servo_closed)
+            time.sleep(2)
+            self.servo.stop()
+            self.last_movement = time.time()

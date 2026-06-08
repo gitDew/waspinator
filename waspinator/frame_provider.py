@@ -28,7 +28,7 @@ class PiCameraFrameProvider(FrameProvider):
 
         self.camera.set_controls({
             "AfMode": 0,
-            "LensPosition": 5.4
+            "LensPosition": 18
         })
         self.camera.start()
 
